@@ -63,8 +63,8 @@ void loop() {
     connectToStoredWiFi();
   }
 
-  if (WiFi.status() == WL_CONNECTED && millis() - lastPing > 5000) {
+  if (WiFi.status() == WL_CONNECTED && millis() - lastPing > 10000) {
     lastPing = millis();
-    sendHeartbeat();
+    logDeviceEvent();
   }
 }

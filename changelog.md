@@ -273,3 +273,221 @@ Reset complete. Restarting device...
 - **Deployment Flexibility**: Different device IDs without code changes
 - **Network Clarity**: Clear device identification in WiFi network lists
 - **Simple Configuration**: Single configuration value covers all device identification needs
+
+## [August 3, 2025] - API Logging and Device Events
+
+### Changed
+
+- **API Endpoint**: Changed from `hello-world` GET request to `log-device-event` POST request
+- **Request Interval**: Increased from 5 seconds to 10 seconds between API calls
+- **Function Name**: Renamed `sendHeartbeat()` to `logDeviceEvent()` for clarity
+
+### Added
+
+- **API Token Authentication** - `API_TOKEN` in secrets.h for Supabase authentication
+- **JSON Payload** - POST requests with structured data: `{"device_id": "xxx", "measure_1": random_int}`
+- **Random Sensor Data** - `measure_1` field contains random integer between 0-100
+- **Enhanced Logging** - Better logging of requests, responses, and authentication status
+
+### Technical Implementation
+
+- **`secrets.h.example`** - Added `API_TOKEN` configuration example
+- **`secrets.h`** - Added API token (gitignored for security)
+- **`src/network/network_service.h`** - Updated function declaration to `logDeviceEvent()`
+- **`src/network/network_service.cpp`** - Complete rewrite for POST with JSON payload and authentication
+- **`daynode.ino`** - Updated interval and function call
+
+### API Request Details
+
+```bash
+POST https://unvvzrzcmtsnxounsywc.supabase.co/functions/v1/log-device-event
+Headers:
+  - Authorization: Bearer {API_TOKEN}
+  - Content-Type: application/json
+Body:
+  {"device_id": "001", "measure_1": 42}
+```
+
+### Benefits
+
+- **Structured Data**: JSON payload allows for complex sensor data
+- **Authentication**: Secure API calls with bearer token
+- **Device Tracking**: Clear device identification in server logs
+- **Sensor Simulation**: Random data simulates real sensor readings
+- **Reduced Load**: 10-second intervals reduce server load while maintaining connectivity
+
+## [August 3, 2025] - Web Dashboard for Device Events
+
+### Added
+
+- **Next.js Web Dashboard** - Complete web application in `www/` folder for viewing device events
+- **Device Events API Route** - `/api/device-events` endpoint for querying Supabase edge function
+- **Responsive UI Components** - Device ID input, date range picker, and events display
+- **Real-time Data Visualization** - Table view and raw JSON display of device events
+- **Environment Configuration** - Support for environment variables in Next.js app
+
+### Technical Implementation
+
+- **`www/app/page.tsx`** - Main dashboard component with form and results display
+- **`www/app/api/device-events/route.ts`** - API route that calls Supabase `get-device-events` function
+- **`www/README-DEVICE-DASHBOARD.md`** - Complete setup and usage documentation
+- **Tailwind CSS v4** - Modern styling with responsive design
+
+### Features
+
+- **Device ID Search**: Query events for specific device identifiers
+- **Date Range Filtering**: Filter events by start and end datetime
+- **Default Time Range**: Automatically sets last 24 hours as default query
+- **Error Handling**: User-friendly error messages for API failures
+- **Loading States**: Visual feedback during data fetching
+- **Multiple Display Formats**: Both table view (first 10 events) and raw JSON (all events)
+
+### API Integration
+
+- **Endpoint**: POST `/api/device-events`
+- **Payload**: `{"device_id": "001", "from": "2025-01-06T10:00", "to": "2025-01-06T11:00"}`
+- **Authentication**: Uses same Supabase anon key as ESP32 devices
+- **Response**: Array of device events with timestamps and sensor data
+
+### Usage Example
+
+```bash
+cd www
+npm install
+npm run dev
+# Visit http://localhost:3000
+# Enter device ID "001" and click "Fetch Events"
+```
+
+### Benefits
+
+- **Centralized Monitoring**: View all device events in one place
+- **Historical Analysis**: Query events by date range for trend analysis
+- **Developer Friendly**: Easy setup with clear documentation
+- **Production Ready**: Built with Next.js 15 and TypeScript for reliability
+
+## [August 3, 2025] - Direct Database Access for Web Dashboard
+
+### Changed
+
+- **API Implementation**: Switched from Supabase edge function to direct database access using Supabase client
+- **Environment Variables**: Updated to use `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` instead of anon key
+- **Query Performance**: Direct database queries provide better performance and more control
+
+### Added
+
+- **@supabase/supabase-js**: Added Supabase client library dependency
+- **Enhanced Response Format**: API now returns metadata including count and query parameters
+- **Better Error Handling**: More detailed error messages from direct database queries
+
+### Technical Implementation
+
+- **`www/app/api/device-events/route.ts`** - Replaced fetch to edge function with direct Supabase client queries
+- **Database Queries** - Direct queries to `events` table with proper filtering and ordering
+- **Service Key Authentication** - Uses service key for backend database access (more secure and powerful)
+
+### API Changes
+
+- **Request Format**: Unchanged - still accepts `{ device_id, from, to }`
+- **Response Format**: Enhanced with metadata:
+  ```json
+  {
+    "events": [...],
+    "count": 5,
+    "device_id": "001",
+    "from": "2025-01-06T10:00",
+    "to": "2025-01-06T11:00"
+  }
+  ```
+
+### Benefits
+
+- **Better Performance**: Direct database access eliminates edge function overhead
+- **More Control**: Full Supabase query capabilities (filtering, ordering, pagination)
+- **Enhanced Security**: Service key provides backend-only database access
+- **Improved Debugging**: Direct error messages from database queries
+- **Future Scalability**: Foundation for more complex queries and aggregations
+
+## [August 3, 2025] - Database Field Fix and Quick Time Range UI
+
+### Fixed
+
+- **Database Field**: Changed from `events.timestamp` to `events.created_at` to match actual database schema
+- **API Queries**: Updated all database queries to use correct `created_at` field
+- **Frontend Display**: Updated UI to display timestamps using `created_at` field
+
+### Added
+
+- **Quick Time Range Buttons** - One-click time range selection for common periods
+- **Time Range Options**: "Last 30 mins", "Last 1 hour", "Last 1 day"
+- **Clear Button**: Reset time range selection and manual date inputs
+- **Visual Feedback**: Active quick range button highlighting
+
+### Enhanced User Experience
+
+- **Faster Queries**: Quick buttons eliminate manual date/time input for common use cases
+- **Smart Interaction**: Manual date changes clear quick range selection automatically
+- **Intuitive UI**: Clear visual indication of selected time range
+
+### Technical Implementation
+
+- **Quick Range Logic**: JavaScript time calculations for precise time ranges
+- **State Management**: Added `selectedRange` state to track active quick selection
+- **Event Handlers**: Manual date inputs clear quick range selection for consistency
+- **Responsive Design**: Button layout adapts to different screen sizes
+
+### UI Changes
+
+- **Time Range Buttons**: Added above device ID and date inputs
+- **Button States**: Active/inactive styling with hover effects
+- **Grid Layout**: Maintained responsive 3-column layout for inputs
+- **Clear Functionality**: One-click reset for all time-related inputs
+
+### Benefits
+
+- **Improved UX**: Common time ranges accessible with single click
+- **Reduced Errors**: Pre-calculated time ranges eliminate manual date input mistakes
+- **Faster Workflow**: Quick access to recent data for monitoring and debugging
+
+## [August 3, 2025] - Interactive Data Visualization with Recharts
+
+### Added
+
+- **Recharts Line Chart** - Interactive line chart to visualize sensor data over time
+- **Chart Data Transformation** - Function to convert device events into chart-friendly format
+- **Enhanced Tooltips** - Interactive tooltips showing full timestamp and measurement values
+- **Responsive Chart Design** - Chart adapts to different screen sizes with ResponsiveContainer
+
+### Technical Implementation
+
+- **Recharts Library** - Added recharts dependency for chart functionality
+- **Chart Component** - LineChart with XAxis (time), YAxis (measure_1), grid, and legend
+- **Data Processing** - Transform events data with proper timestamp formatting for X-axis
+- **Conditional Rendering** - Chart only displays when events data is available
+
+### Chart Features
+
+- **Time-based X-axis** - Shows timestamps in HH:MM:SS format (24-hour)
+- **Measure 1 Y-axis** - Displays sensor values with automatic scaling
+- **Interactive Elements** - Hover tooltips, clickable legend, zoom functionality
+- **Visual Design** - Blue line with dots, grid lines, and professional styling
+- **Chronological Order** - Data displayed from oldest to newest for trend analysis
+
+### UI Layout Updates
+
+- **Chart Placement** - Positioned between data table and raw JSON display
+- **Section Headers** - Clear "Measure 1 Over Time" heading
+- **Consistent Styling** - Matches existing design with gray background container
+- **Responsive Height** - Fixed 400px height for optimal viewing
+
+### Data Visualization Benefits
+
+- **Trend Analysis** - Easy identification of patterns and trends in sensor data
+- **Time Correlation** - Visual correlation between time and measurement values
+- **Data Quality Assessment** - Quick visual check for anomalies or outliers
+- **User Experience** - More engaging and intuitive data presentation
+- **Professional Appearance** - Dashboard now suitable for presentations and reports
+
+### Dependencies Added
+
+- **recharts**: ^2.x - React chart library for creating responsive, interactive charts

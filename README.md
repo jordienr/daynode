@@ -27,6 +27,7 @@ daynode/
 │   ├── web/              # Web interface and UI
 │   ├── wifi/             # WiFi management and AP setup
 │   └── network/          # Network services and HTTP communication
+├── www/                  # Next.js web dashboard for viewing device events
 └── README.md             # This file
 ```
 
@@ -105,12 +106,16 @@ For device identification, use the `secrets.h` file:
 ```cpp
 // Device Configuration
 #define DEVICE_ID "001"  // Your unique device identifier
+
+// API Configuration
+#define API_TOKEN "your-supabase-anon-key"  // Supabase API token for authentication
 ```
 
 **What it does:**
 
 - **WiFi Hotspot**: Creates `DAYNODE_001` instead of `DAYNODE_NOD1`
-- **API Tracking**: Adds device ID to heartbeat URL for identification
+- **API Logging**: Sends device events with ID and sensor data every 10 seconds
+- **Authentication**: Uses API token for secure communication with Supabase
 - **Unique Identity**: Each device gets its own identifier
 
 **Benefits:**
@@ -183,4 +188,25 @@ For device identification, use the `secrets.h` file:
 - **ESP32 Hotspot**: `DAYNODE_NOD1` (default) or `DAYNODE_xxx` (with device ID)
 - **AP IP Address**: `192.168.4.1`
 - **Web Interface**: Automatic captive portal or manual navigation
-- **Heartbeat URL**: Configurable in `src/network/network_service.cpp`
+- **API Endpoint**: `log-device-event` (POST every 10 seconds with JSON data)
+
+## Web Dashboard
+
+The `www/` folder contains a Next.js web application for viewing device events:
+
+- **Real-time monitoring**: View events from all your Daynode devices
+- **Device filtering**: Query events by specific device ID
+- **Date range selection**: Filter events by time period with quick range buttons
+- **Interactive charts**: Recharts line chart visualization of sensor data over time
+- **Responsive design**: Works on desktop and mobile
+
+### Quick Start
+
+```bash
+cd www
+npm install
+npm run dev
+# Visit http://localhost:3000
+```
+
+See [www/README-DEVICE-DASHBOARD.md](www/README-DEVICE-DASHBOARD.md) for detailed setup instructions.

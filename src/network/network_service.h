@@ -4,6 +4,6 @@
 #include "../core/config.h"
 
 // Function declarations
-void sendHeartbeat();
+void logDeviceEvent();
 
 #endif // NETWORK_SERVICE_H
