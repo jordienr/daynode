@@ -37,6 +37,19 @@ void setupAP() {
     server.send(200, "text/plain", "ESP32 Server Working!");
   });
 
+  // WiFi reset route
+  server.on("/reset-wifi", []() {
+    LOG("WiFi reset requested");
+    clearStoredWiFi();
+    server.send(200, "text/html", 
+      "<html><body style='font-family:sans-serif;padding:2em;text-align:center;'>"
+      "<h2>WiFi Credentials Cleared!</h2>"
+      "<p>All stored WiFi settings have been erased.</p>"
+      "<p>The ESP32 will restart in AP mode on next reboot.</p>"
+      "<p><a href='/'>← Back to WiFi Setup</a></p>"
+      "</body></html>");
+  });
+
   // Captive portal handlers
   server.on("/generate_204", []() {
     LOG("Handled /generate_204");
@@ -84,6 +97,11 @@ void setupAP() {
 }
 
 void connectToStoredWiFi() {
+  if (!REMEMBER_WIFI) {
+    LOG("REMEMBER_WIFI disabled - skipping stored WiFi connection");
+    return;
+  }
+  
   LOG("Attempting to connect to stored WiFi...");
   prefs.begin("wifi", true);
   String ssid = prefs.getString("ssid", "");
@@ -115,4 +133,13 @@ void connectToStoredWiFi() {
     ERR("Failed to connect to WiFi. Falling back to AP");
     setupAP();  // fallback
   }
+}
+
+void clearStoredWiFi() {
+  LOG("Clearing stored WiFi credentials...");
+  prefs.begin("wifi", false);
+  prefs.clear(); // Clear all keys in the "wifi" namespace
+  prefs.end();
+  LOG("WiFi credentials cleared successfully");
+  Serial.println("WiFi credentials have been erased from flash memory");
 }

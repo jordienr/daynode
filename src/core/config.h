@@ -15,6 +15,9 @@ extern DNSServer dnsServer;
 // Configuration constants
 extern const char* apSSID;
 
+// Development toggles
+#define REMEMBER_WIFI true  // Set to false to ignore stored WiFi credentials
+
 // Global state variables
 extern bool shouldConnectToWiFi;
 extern String selectedSSID;

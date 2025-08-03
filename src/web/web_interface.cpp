@@ -48,6 +48,12 @@ void showMainPage() {
 
   html += R"rawliteral(
     </ul>
+    <div style="margin-top: 2em; text-align: center;">
+      <a href="/reset-wifi" style="background: #dc3545; font-size: 0.9em; padding: 0.8em;" 
+         onclick="return confirm('Are you sure? This will erase all stored WiFi settings.')">
+        🗑️ Reset WiFi Settings
+      </a>
+    </div>
   </div>
 
   <div id="passwordForm" class="form-container">
@@ -92,12 +98,15 @@ void handleConnect() {
     selectedSSID = server.arg("ssid");
     enteredPassword = server.arg("password");
     
-    LOG("Saving credentials: SSID=" + selectedSSID);
-    
-    prefs.begin("wifi", false);
-    prefs.putString("ssid", selectedSSID);
-    prefs.putString("pass", enteredPassword);
-    prefs.end();
+    if (REMEMBER_WIFI) {
+      LOG("Saving credentials: SSID=" + selectedSSID);
+      prefs.begin("wifi", false);
+      prefs.putString("ssid", selectedSSID);
+      prefs.putString("pass", enteredPassword);
+      prefs.end();
+    } else {
+      LOG("REMEMBER_WIFI disabled - not saving credentials (session only)");
+    }
     
     shouldConnectToWiFi = true;
     

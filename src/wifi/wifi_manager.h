@@ -6,5 +6,6 @@
 // Function declarations
 void setupAP();
 void connectToStoredWiFi();
+void clearStoredWiFi();
 
 #endif // WIFI_MANAGER_H

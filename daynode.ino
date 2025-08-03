@@ -1,4 +1,4 @@
-// DayNode - Modular ESP32 WiFi Configuration
+// Daynode - Modular ESP32 WiFi Configuration
 #include "src/core/config.h"
 #include "src/web/web_interface.h"
 #include "src/wifi/wifi_manager.h"
