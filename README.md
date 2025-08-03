@@ -13,7 +13,7 @@ A modular ESP32 WiFi provisioning system with captive portal and easy credential
 ## Quick Start
 
 1. **Upload** the code to your ESP32
-2. **Connect** to the `DAYNODE_NOD1` WiFi network
+2. **Connect** to the `DAYNODE_NOD1` WiFi network (or `DAYNODE_xxx` if device ID configured)
 3. **Configure** your WiFi credentials through the captive portal
 4. **Done!** ESP32 will connect to your WiFi automatically
 
@@ -75,7 +75,7 @@ To restore normal operation:
 
 **Best for**: Clearing bad credentials or switching networks
 
-1. **Connect** to the ESP32's WiFi hotspot (`DAYNODE_NOD1`)
+1. **Connect** to the ESP32's WiFi hotspot (`DAYNODE_NOD1` or custom `DAYNODE_xxx`)
 2. **Open** any website in your browser (captive portal will appear)
 3. **Click** the red "🗑️ Reset WiFi Settings" button
 4. **Confirm** the reset in the dialog
@@ -91,6 +91,33 @@ Or navigate directly to: `http://192.168.4.1/reset-wifi`
 2. **Physical reset**: Hold BOOT button while powering on, then reflash
 
 ## Development Configuration
+
+### Device Identification (secrets.h)
+
+For device identification, use the `secrets.h` file:
+
+1. **Copy the template**: `cp secrets.h.example secrets.h`
+2. **Set your device ID**: Open `secrets.h` and uncomment/set `DEVICE_ID`
+3. **File is gitignored**: Your device ID won't be committed to version control
+
+**Example secrets.h configuration:**
+
+```cpp
+// Device Configuration
+#define DEVICE_ID "001"  // Your unique device identifier
+```
+
+**What it does:**
+
+- **WiFi Hotspot**: Creates `DAYNODE_001` instead of `DAYNODE_NOD1`
+- **API Tracking**: Adds device ID to heartbeat URL for identification
+- **Unique Identity**: Each device gets its own identifier
+
+**Benefits:**
+
+- 🏷️ **Device Tracking**: Identify which device is connecting
+- 🔄 **Easy Deployment**: Different IDs per device without code changes
+- 📡 **Network Clarity**: Clear device identification in WiFi networks
 
 ### Testing Mode
 
@@ -134,7 +161,7 @@ Or navigate directly to: `http://192.168.4.1/reset-wifi`
 **Can't access captive portal:**
 
 - **Try hardware reset first** (BOOT button for 5+ seconds)
-- Connect to `DAYNODE_NOD1` network
+- Connect to `DAYNODE_NOD1` network (or your custom device network)
 - Navigate to `192.168.4.1` manually
 - Try different browser or clear browser cache
 
@@ -153,7 +180,7 @@ Or navigate directly to: `http://192.168.4.1/reset-wifi`
 
 ## Network Information
 
-- **ESP32 Hotspot**: `DAYNODE_NOD1`
+- **ESP32 Hotspot**: `DAYNODE_NOD1` (default) or `DAYNODE_xxx` (with device ID)
 - **AP IP Address**: `192.168.4.1`
 - **Web Interface**: Automatic captive portal or manual navigation
 - **Heartbeat URL**: Configurable in `src/network/network_service.cpp`

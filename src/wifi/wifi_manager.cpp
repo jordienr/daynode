@@ -20,7 +20,14 @@ void setupAP() {
   WiFi.mode(WIFI_AP);
 
   // Now start the SoftAP
-  WiFi.softAP(apSSID);
+  #ifdef DEVICE_ID
+    String deviceSSID = "DAYNODE_" + String(DEVICE_ID);
+    WiFi.softAP(deviceSSID.c_str());
+    LOG("AP started with device ID: " + deviceSSID);
+  #else
+    WiFi.softAP(apSSID);
+    LOG("AP started with default name: " + String(apSSID));
+  #endif
   Serial.println("AP IP: " + WiFi.softAPIP().toString());
 
   LOG("Starting DNS redirector");

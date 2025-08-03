@@ -1,0 +1,33 @@
+# Arduino/ESP32 build files
+*.hex
+*.bin
+*.elf
+*.map
+
+# Arduino IDE files
+.DS_Store
+Thumbs.db
+
+# Secrets and environment variables
+secrets.h
+
+# Node.js (if using any build tools)
+node_modules/
+npm-debug.log*
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Platform.io (if used)
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*~

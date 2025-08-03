@@ -7,6 +7,9 @@
 #include <Preferences.h>
 #include <HTTPClient.h>
 
+// Include secrets file for environment variables
+#include "../../secrets.h"
+
 // Global objects
 extern Preferences prefs;
 extern WebServer server;

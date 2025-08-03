@@ -235,3 +235,41 @@ Reset complete. Restarting device...
 
 - **Branded Network Name**: More descriptive and project-specific WiFi hotspot name
 - **Easier Identification**: Users can easily identify the Daynode device among other WiFi networks
+
+## [August 3, 2025] - Device Identification System (Simplified)
+
+### Added
+
+- **Device ID Configuration** - `secrets.h` file for unique device identification
+- **`.gitignore` file** - Comprehensive gitignore including `secrets.h` and build files
+- **`secrets.h.example`** - Simple template file showing DEVICE_ID configuration
+- **Dynamic WiFi Hotspot Names** - Use `DEVICE_ID` to create unique WiFi names like `DAYNODE_001`
+- **Device Tracking in API** - Append device ID to heartbeat URL for identification
+
+### Technical Implementation
+
+- **`secrets.h`** - Local device configuration file (gitignored)
+- **`secrets.h.example`** - Simple template with DEVICE_ID example
+- **`src/core/config.h`** - Includes secrets.h for project-wide access
+- **`src/network/network_service.cpp`** - Adds device ID parameter to heartbeat URL
+- **`src/wifi/wifi_manager.cpp`** - Creates WiFi hotspot name using DEVICE_ID
+
+### Usage Example
+
+```cpp
+// In secrets.h
+#define DEVICE_ID "001"  // Creates DAYNODE_001 WiFi hotspot
+```
+
+### Behavior
+
+- **Without DEVICE_ID**: Uses default name `DAYNODE_NOD1`
+- **With DEVICE_ID**: Uses `DAYNODE_` + device ID (e.g., `DAYNODE_001`)
+- **API Tracking**: Heartbeat includes `&device=001` parameter for identification
+
+### Benefits
+
+- **Device Tracking**: Easy identification of multiple devices in network and API logs
+- **Deployment Flexibility**: Different device IDs without code changes
+- **Network Clarity**: Clear device identification in WiFi network lists
+- **Simple Configuration**: Single configuration value covers all device identification needs
