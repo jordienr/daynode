@@ -15,3 +15,7 @@ String enteredPassword;
 String networks[8];
 int networkCount = 0;
 unsigned long lastPing = 0;
+
+// Hardware reset button state
+bool resetButtonPressed = false;
+unsigned long resetButtonPressStart = 0;

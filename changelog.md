@@ -174,3 +174,64 @@ daynode/
 
 - **Project Name**: Fixed capitalization from "DayNode" to "Daynode" across all documentation
 - **Files Updated**: README.md, changelog.md, daynode.ino header comment
+
+## [August 3, 2025] - Hardware Reset Button Functionality
+
+### Added
+
+- **Hardware Reset Button Support** - BOOT button (GPIO0) monitoring for WiFi credential reset
+- **5-Second Hold Detection** - Press and hold BOOT button for 5+ seconds triggers reset
+- **Automatic Device Restart** - After clearing credentials, ESP32 automatically restarts
+- **Serial Monitor Feedback** - Clear messages when button is pressed/held/reset triggered
+- **Button State Tracking** - Global variables to monitor button press duration
+
+### Technical Implementation
+
+- **`src/core/config.h`** - Added `RESET_BUTTON_PIN` (GPIO0) and `RESET_HOLD_TIME` (5000ms) constants
+- **`src/core/globals.cpp`** - Added button state tracking variables (`resetButtonPressed`, `resetButtonPressStart`)
+- **`src/wifi/wifi_manager.h/.cpp`** - Added `performHardwareReset()` function with clear logging
+- **`daynode.ino`** - Added button pinMode setup and monitoring logic in main loop
+
+### Usage
+
+1. **Hold BOOT button** on ESP32 board for 5+ seconds while powered on
+2. **Watch Serial Monitor** for confirmation messages
+3. **Release button** - device automatically clears WiFi credentials and restarts
+4. **ESP32 starts fresh** in AP mode ready for new WiFi configuration
+
+### Serial Output Example
+
+```
+[LOG] Reset button pressed - hold for 5 seconds to reset WiFi
+=================================
+HARDWARE RESET TRIGGERED!
+Clearing WiFi credentials...
+=================================
+Reset complete. Restarting device...
+```
+
+### Benefits
+
+- **Most Reliable**: Works even when web interface is inaccessible
+- **No Tools Required**: Uses standard BOOT button present on all ESP32 dev boards
+- **User-Friendly**: Clear feedback via Serial Monitor
+- **Foolproof**: 5-second hold prevents accidental resets
+- **Complete Reset**: Clears credentials and restarts device in one action
+
+### Updated Documentation
+
+- **README.md** - Added hardware reset as Method 1 (recommended approach)
+- **Troubleshooting** - Updated all sections to mention hardware reset as primary solution
+- **Method Reordering** - Hardware reset now primary method, others renumbered accordingly
+
+## [August 3, 2025] - WiFi Network Name Update
+
+### Changed
+
+- **ESP32 Hotspot Name**: Updated from "ESP32_1" to "DAYNODE_NOD1"
+- **Files Updated**: `src/core/globals.cpp` (apSSID constant), README.md (all network references)
+
+### Benefits
+
+- **Branded Network Name**: More descriptive and project-specific WiFi hotspot name
+- **Easier Identification**: Users can easily identify the Daynode device among other WiFi networks

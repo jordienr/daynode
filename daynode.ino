@@ -9,8 +9,12 @@ void setup() {
   Serial.setDebugOutput(true);
   delay(1000); // Give more time for serial to initialize
 
+  // Setup hardware reset button
+  pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
+
   LOG("Boot complete");
   LOG("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+  LOG("Hardware reset: Hold BOOT button for 5+ seconds");
 
   // Initialize preferences
   prefs.begin("wifi", false);
@@ -23,6 +27,28 @@ void setup() {
 }
 
 void loop() {
+  // Monitor hardware reset button
+  bool buttonCurrentlyPressed = digitalRead(RESET_BUTTON_PIN) == LOW;
+  
+  if (buttonCurrentlyPressed && !resetButtonPressed) {
+    // Button just pressed
+    resetButtonPressed = true;
+    resetButtonPressStart = millis();
+    LOG("Reset button pressed - hold for 5 seconds to reset WiFi");
+  } else if (!buttonCurrentlyPressed && resetButtonPressed) {
+    // Button released
+    resetButtonPressed = false;
+    LOG("Reset button released");
+  } else if (buttonCurrentlyPressed && resetButtonPressed) {
+    // Button is being held
+    unsigned long holdDuration = millis() - resetButtonPressStart;
+    if (holdDuration >= RESET_HOLD_TIME) {
+      // Button held for required time - trigger reset
+      performHardwareReset();
+      // performHardwareReset() calls ESP.restart(), so code won't reach here
+    }
+  }
+
   if (WiFi.getMode() == WIFI_AP) {
     // Process DNS requests more frequently
     dnsServer.processNextRequest();

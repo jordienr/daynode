@@ -7,5 +7,6 @@
 void setupAP();
 void connectToStoredWiFi();
 void clearStoredWiFi();
+void performHardwareReset();
 
 #endif // WIFI_MANAGER_H

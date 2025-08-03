@@ -143,3 +143,17 @@ void clearStoredWiFi() {
   LOG("WiFi credentials cleared successfully");
   Serial.println("WiFi credentials have been erased from flash memory");
 }
+
+void performHardwareReset() {
+  LOG("HARDWARE RESET: Button held for 5+ seconds");
+  Serial.println("=================================");
+  Serial.println("HARDWARE RESET TRIGGERED!");
+  Serial.println("Clearing WiFi credentials...");
+  Serial.println("=================================");
+  
+  clearStoredWiFi();
+  
+  Serial.println("Reset complete. Restarting device...");
+  delay(1000); // Give time for serial output
+  ESP.restart(); // Restart the ESP32
+}
