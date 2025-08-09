@@ -2,6 +2,30 @@
 
 All notable changes to the Daynode project will be documented in this file.
 
+## [August 3, 2025] - DS18B20 Temperature Service Implementation
+
+### Added
+
+- **temperature_service.h** - Header file for DS18B20 temperature sensor functionality
+- **temperature_service.cpp** - Complete implementation of DS18B20 temperature sensor service with comprehensive logging
+  - `initTemperatureService()` - Initialize DS18B20 sensor with connection validation and precision setting
+  - `getTemperatureC()` - Read temperature in Celsius with error handling and range validation
+  - `isTemperatureSensorConnected()` - Check sensor connectivity status
+  - Support for 12-bit precision (0.0625°C resolution)
+  - Automatic sensor detection and connection validation
+  - Comprehensive error logging for troubleshooting wiring issues
+  - Temperature range validation (-55°C to +125°C)
+
+### Changed
+
+- **network_service.h** - Added temperature service include for temperature data transmission
+- **network_service.cpp** - Updated `logDeviceEvent()` function to send real temperature data
+  - Replaced test `measure_1` field with `temp_c` field (float8 type)
+  - Added temperature reading with `getTemperatureC()` before sending
+  - Implemented null value handling for disconnected sensor scenarios
+  - Added temperature-specific logging for successful readings and sensor errors
+  - Temperature data sent with 2 decimal precision to database
+
 ## [August 3, 2025] - Major Code Refactoring
 
 ### Added
@@ -491,3 +515,60 @@ npm run dev
 ### Dependencies Added
 
 - **recharts**: ^2.x - React chart library for creating responsive, interactive charts
+
+## [August 3, 2025] - Auto-Refresh Functionality with Countdown
+
+### Added
+
+- **Auto-Refresh Toggle Button** - Start/Stop auto-refresh functionality for real-time data monitoring
+- **30-Second Refresh Interval** - Automatically fetches new device events every 30 seconds when enabled
+- **Live Countdown Timer** - Visual countdown showing seconds until next refresh (with pulsing green indicator)
+- **Automatic State Management** - Auto-refresh stops when device ID is cleared or component unmounts
+
+### Technical Implementation
+
+- **React Hooks** - Added useEffect hooks for interval management and cleanup
+- **State Management** - Added `autoRefresh`, `countdown` state variables and interval refs
+- **Interval Cleanup** - Proper cleanup of setInterval timers on component unmount and state changes
+- **UI Components** - Toggle button with visual feedback and countdown display
+
+### Features
+
+- **Smart Enable/Disable** - Button is disabled when no device ID is entered or when loading
+- **Visual Feedback** - Button changes color (green when active) and shows current state
+- **Countdown Display** - Shows "Next refresh in Xs" with animated pulse indicator
+- **Automatic Reset** - Countdown resets to 30 seconds after each refresh cycle
+
+### UI/UX Improvements
+
+- **Button Layout** - Auto-refresh button positioned next to "Fetch Events" button
+- **Status Indicator** - Green pulsing dot shows when auto-refresh is active
+- **Responsive Design** - Buttons and countdown display adapt to different screen sizes
+- **User Safety** - Requires device ID input before enabling auto-refresh
+
+### Benefits
+
+- **Real-time Monitoring** - Continuous updates for live sensor data tracking
+- **Reduced Manual Effort** - No need to manually refresh for latest data
+- **Visual Feedback** - Clear indication of refresh status and timing
+- **Resource Efficient** - Proper cleanup prevents memory leaks from abandoned intervals
+
+## [August 3, 2025] - Auto-Refresh Interval Update
+
+### Changed
+
+- **Refresh Interval** - Updated auto-refresh from 30 seconds to 5 seconds for more responsive real-time monitoring
+- **Countdown Timer** - Countdown now displays 5-second intervals instead of 30-second intervals
+- **Initial State** - Default countdown value changed from 30 to 5 seconds
+
+### Technical Updates
+
+- **setInterval Duration** - Changed from 30000ms to 5000ms for refresh cycle
+- **Countdown Reset Logic** - All countdown resets now use 5 seconds instead of 30
+- **State Initialization** - `useState(5)` for countdown initial value
+
+### Benefits
+
+- **More Responsive** - Real-time data updates every 5 seconds for faster feedback
+- **Better Monitoring** - Quicker detection of sensor changes and anomalies
+- **Improved User Experience** - Less waiting time for fresh data updates

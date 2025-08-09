@@ -3,6 +3,35 @@
 void logDeviceEvent() {
   if (WiFi.status() != WL_CONNECTED) return;
 
+  // Get device ID
+  String deviceId;
+  #ifdef DEVICE_ID
+    deviceId = String(DEVICE_ID);
+  #else
+    deviceId = "NOD1";  // Default device ID
+  #endif
+  
+  // Validate device ID
+  if (deviceId.length() == 0) {
+    ERR("Device ID is empty - skipping event logging");
+    return;
+  }
+  
+  // Get temperature reading
+  float temperature = getTemperatureC();
+  
+  // Validate temperature
+  if (temperature == DEVICE_DISCONNECTED_C) {
+    ERR("Temperature sensor disconnected - skipping event logging");
+    return;
+  }
+  
+  // Check for valid temperature range (-55°C to +125°C for DS18B20)
+  if (temperature < -55.0 || temperature > 125.0) {
+    ERR("Temperature reading out of valid range: " + String(temperature, 2) + "°C - skipping event logging");
+    return;
+  }
+
   HTTPClient http;
   http.begin("https://unvvzrzcmtsnxounsywc.supabase.co/functions/v1/log-device-event");
   
@@ -18,18 +47,11 @@ void logDeviceEvent() {
   
   // Build JSON payload
   String payload = "{";
-  payload += "\"device_id\": \"";
-  
-  #ifdef DEVICE_ID
-    payload += String(DEVICE_ID);
-  #else
-    payload += "NOD1";  // Default device ID
-  #endif
-  
-  payload += "\", \"measure_1\": ";
-  payload += String(random(0, 101));  // Random int 0-100
+  payload += "\"device_id\": \"" + deviceId + "\"";
+  payload += ", \"temp_c\": " + String(temperature, 2);
   payload += "}";
   
+  LOG("Temperature reading: " + String(temperature, 2) + "°C");
   LOG("Sending device event: " + payload);
   
   int code = http.POST(payload);

@@ -3,6 +3,7 @@
 #include "src/web/web_interface.h"
 #include "src/wifi/wifi_manager.h"
 #include "src/network/network_service.h"
+#include "src/temperature/temperature_service.h"
 
 void setup() {
   Serial.begin(115200);
@@ -19,6 +20,11 @@ void setup() {
   // Initialize preferences
   prefs.begin("wifi", false);
   prefs.end();
+
+  // Initialize temperature service
+  LOG("About to initialize temperature service...");
+  initTemperatureService();
+  LOG("Temperature service initialization completed.");
 
   connectToStoredWiFi();
   if (WiFi.status() != WL_CONNECTED) {
@@ -63,7 +69,7 @@ void loop() {
     connectToStoredWiFi();
   }
 
-  if (WiFi.status() == WL_CONNECTED && millis() - lastPing > 10000) {
+  if (WiFi.status() == WL_CONNECTED && millis() - lastPing > 5000) {
     lastPing = millis();
     logDeviceEvent();
   }

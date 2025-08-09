@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -14,7 +14,7 @@ import {
 
 interface DeviceEvent {
   device_id: string;
-  measure_1: number;
+  temp_c: number;
   created_at: string;
   [key: string]: any;
 }
@@ -37,6 +37,11 @@ export default function DeviceEventsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState<string>("");
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+
+  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Set default dates (last 24 hours)
   const getDefaultDates = () => {
@@ -55,6 +60,60 @@ export default function DeviceEventsPage() {
     setFromDate(defaults.from);
     setToDate(defaults.to);
   });
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (autoRefresh && deviceId.trim()) {
+      // Start the 5-second refresh cycle
+      autoRefreshIntervalRef.current = setInterval(() => {
+        fetchDeviceEvents();
+        setCountdown(5); // Reset countdown
+      }, 5000);
+
+      // Start the countdown timer (updates every second)
+      countdownIntervalRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            return 5; // Reset to 5 when reaching 0
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      // Clear intervals when auto-refresh is disabled
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+        autoRefreshIntervalRef.current = null;
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      setCountdown(5); // Reset countdown
+    }
+
+    // Cleanup function
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [autoRefresh, deviceId]);
+
+  // Cleanup intervals on component unmount
+  useEffect(() => {
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Quick time range functions
   const setQuickRange = (range: string) => {
@@ -78,6 +137,14 @@ export default function DeviceEventsPage() {
     setFromDate(from.toISOString().slice(0, 16));
     setToDate(now.toISOString().slice(0, 16));
     setSelectedRange(range);
+  };
+
+  // Toggle auto-refresh functionality
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(!autoRefresh);
+    if (!autoRefresh) {
+      setCountdown(5); // Reset countdown when enabling
+    }
   };
 
   const fetchDeviceEvents = async () => {
@@ -144,7 +211,7 @@ export default function DeviceEventsPage() {
             second: "2-digit",
           }),
           fullTimestamp: date.toLocaleString(),
-          measure_1: event.measure_1,
+          temp_c: event.temp_c,
           device_id: event.device_id,
           rawTimestamp: event.created_at,
         };
@@ -257,13 +324,38 @@ export default function DeviceEventsPage() {
               </div>
             </div>
 
-            <button
-              onClick={fetchDeviceEvents}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-md transition-colors"
-            >
-              {loading ? "Loading..." : "Fetch Events"}
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={fetchDeviceEvents}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              >
+                {loading ? "Loading..." : "Fetch Events"}
+              </button>
+
+              <button
+                onClick={toggleAutoRefresh}
+                disabled={!deviceId.trim() || loading}
+                className={`font-medium py-2 px-4 rounded-md transition-colors border ${
+                  autoRefresh
+                    ? "bg-green-600 hover:bg-green-700 text-white border-green-600"
+                    : "bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {autoRefresh ? "Stop Auto-refresh" : "Start Auto-refresh"}
+              </button>
+
+              {autoRefresh && (
+                <div className="flex items-center px-3 py-2 bg-gray-100 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-700">
+                      Next refresh in {countdown}s
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Error Display */}
@@ -310,7 +402,7 @@ export default function DeviceEventsPage() {
                   {events.length > 0 && (
                     <div className="mb-6">
                       <h3 className="text-lg font-medium mb-4">
-                        Measure 1 Over Time
+                        Temperature Over Time
                       </h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <ResponsiveContainer width="100%" height={400}>
@@ -333,7 +425,7 @@ export default function DeviceEventsPage() {
                             />
                             <YAxis
                               label={{
-                                value: "Measure 1",
+                                value: "Temperature (°C)",
                                 angle: -90,
                                 position: "insideLeft",
                               }}
@@ -347,7 +439,7 @@ export default function DeviceEventsPage() {
                               }}
                               formatter={(value, name) => [
                                 `${value}`,
-                                "Measure 1",
+                                "Temperature (°C)",
                               ]}
                               labelStyle={{ color: "#374151" }}
                               contentStyle={{
@@ -360,7 +452,7 @@ export default function DeviceEventsPage() {
                             <Legend />
                             <Line
                               type="monotone"
-                              dataKey="measure_1"
+                              dataKey="temp_c"
                               stroke="#3b82f6"
                               strokeWidth={2}
                               dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
@@ -369,7 +461,7 @@ export default function DeviceEventsPage() {
                                 stroke: "#3b82f6",
                                 strokeWidth: 2,
                               }}
-                              name="Measure 1"
+                              name="Temperature (°C)"
                             />
                           </LineChart>
                         </ResponsiveContainer>
@@ -389,7 +481,7 @@ export default function DeviceEventsPage() {
                             Device ID
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Measure 1
+                            Temperature (°C)
                           </th>
                         </tr>
                       </thead>
@@ -403,7 +495,7 @@ export default function DeviceEventsPage() {
                               {event.device_id}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {event.measure_1}
+                              {event.temp_c}
                             </td>
                           </tr>
                         ))}
